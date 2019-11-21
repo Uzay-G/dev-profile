@@ -1,34 +1,135 @@
 <!DOCTYPE html>
 <head>
-    <title>devdata</title>
+    <title>Dev Data</title>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script></head>
+    <link href="https://fonts.googleapis.com/css?family=Abel|Alata&display=swap" rel="stylesheet">
     <style>
     .container {
         width: 90%;
         text-align: center;
         margin: auto;
     }
-    p {font-family: "Segoe UI", sans-serif;}
+    h1, h2, h3 {
+        font-family: "Alata", sans-serif;
+    }
+    h1 {
+        color: #272343;
+    }
+    h2 {
+        color: #39375b
+    }
+    p, li, figcaption {font-family: "Abel", sans-serif;}
     .profile {
         width: 100px;
         height: 100px;
         border-radius: 30px;
         border: none;
     }
-
+    .git-user {
+        width: 400px;
+        border: 2px solid #594a4e;
+        border-radius: 15px;
+        font-size: 25px;
+        padding: 5px;
+        transition: 1s all;
+    }
+    .git-user:focus {
+        border-color: #ea5e5e
+    }
+    .contact-line {
+	width: 60px;
+	height: 4px;
+	margin: 20px auto;
+	background: #6807f9;
+    }
+    #user-pres {
+        background: rgba(207, 69, 92,0.8);
+        width: 70%;
+        min-height: 140px;
+        margin: auto;
+    }
+    ul {
+        list-style-type: none;
+    }
+    #info {
+        float: left;
+        text-align: left;
+    }
+    #info ul {
+        padding: none;
+        margin-top: 30px;
+    }
+    #info figure {
+        margin: 0;
+    }
+    #info img {
+        width: 40px;
+    }
+    #info a {
+        text-decoration: none;
+    }
+    figcaption {
+        float: right;
+        padding: 5px;
+        font-size: 20px;
+        width: 300px;
+    }
+    #about {
+        text-align: right;
+        padding: 15px;
+        margin-top: 10px;
+    }
+    #about h2, h3 {
+        color: white;
+    }
     </style>
 <body>
 <div id="app-5" class="container">
-    <input v-on:input="find_data" v-model="user" placeholder="edit me">
-    <p>{{ res.name }}</p>
-    <p>{{ res.bio }}</p>
-    <p>{{ res.blog }}</p>
-    <img :src="res.avatar_url" class="profile">
+    <h1>Dev Data</h1>
+    <p>A simple tool to see beautiful representations of your Github user data.</p>
+    <input class="git-user" v-on:input="find_data" v-model="user" placeholder="your github username">
+    <div class="contact-line"></div>
+    <a :href="image_link">
+    <img :src="res.avatar_url" class="profile"></a>
+    <h2>{{ res.name }}</h2>
+    <div id="user-pres">
+        <div id="info">
+            <ul>
+                <template v-if="res.location">
+                <figure>
+                    <img src="location.svg" alt="location pin">
+                    <figcaption>{{ res.location }}</figcaption>
+                </figure>
+                </template>
+                <template v-if="res.blog">
+                <a :href="'http://' + res.blog">
+                <figure>
+                    <img src="web.svg" alt="blog page">
+                    <figcaption>{{ res.blog }}</figcaption>
+                </figure>
+                </a>
+                </template>
+                <template v-if="res.email">
+                    <figure>
+                        <img src="email.svg" alt="email icon">
+                        <figcaption>{{ res.email }}</figcaption>
+                    </figure>
+                </template>
+            </ul>
+        </div>
+        <div id="about">
+            <h2>{{ res.name }}</h2>
+            <h3 v:if="res.company">{{ res.company }}</h3>
+            <p>{{ res.bio }}</p>
+        </div>
+    </div>
     <h1 v-if="res.bio != undefined">Repos</h1>
-    <li v-for="repo in repos">
+    <ul>
+        <li v-for="repo in repos">
             {{ repo.full_name }}
-    </li>
+        </li>
+    </ul>
 </div>
 <script>
     let vue = new Vue({
@@ -36,27 +137,29 @@
         data: {
             user: 'Uzay-',   
             url: "https://api.github.com/users/Uzay-G",
-            res: {},
+            res: {avatar_url: "githublogo.svg"},
             repos: [],
+            image_link: "https://github.com/Uzay-G/dev-profile",
             repos_url: "https://api.github.com/users/Uzay-G/repos"
         },
         methods: {
             find_data: function() {
                 this.url = "https://api.github.com/users/" + this.user
                 axios.get(this.url, {headers: {
-                    Authorization: "Basic Uzay-G:chishluuh78"
+                    Authorization: "Basic Uzay-G:*******"
                     }})
                 .then(response => this.res = response.data
                     )
+                    console.log(this.res.email)
+                this.image_link = "#"
                 this.url = "https://api.github.com/users/" + this.user + "/repos"
                 axios.get(this.repos_url, {headers: {
-                Authorization: "Basic ********"
+                Authorization: "Basic Uzay-G:chishluuh78"
                 }})
                 .then(
                     response => this.repos = response.data
                    // response => console.log(response)
                     )
-                console.log(this.repos)
             }
         }
     })
