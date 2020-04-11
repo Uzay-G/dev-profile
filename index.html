@@ -2,7 +2,8 @@
 <head>
     <title>Dev Data</title>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script></head>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Abel|Alata&display=swap" rel="stylesheet">
     <style>
     .container {
@@ -52,21 +53,24 @@
     ul {
         list-style-type: none;
     }
-    #info {
+    .info {
         float: left;
         text-align: left;
     }
-    #info ul {
+    .info li {
+        padding: 5px;
+    }
+    .info ul {
         padding: none;
         margin-top: 30px;
     }
-    #info figure {
+    .info figure {
         margin: 0;
     }
-    #info img {
+    .info img {
         width: 40px;
     }
-    #info a {
+    .info a {
         text-decoration: none;
     }
     figcaption {
@@ -75,62 +79,116 @@
         font-size: 20px;
         width: 300px;
     }
-    #about {
+    .about {
         text-align: right;
         padding: 15px;
         margin-top: 10px;
     }
-    #about h2, h3 {
+    .about h2, p {margin: 4px;}
+    #user-pres h2, h4 {
         color: white;
     }
+    .repo {
+        background: #eafbea;
+        width: 70%;
+        padding: 15px;
+        margin: auto;
+    }
+    .repo .info {
+        margin-top: -100px;
+    }
+    .btn {
+        padding: 5px;
+        background: #745c97;
+        color: white;
+    }
+    .fadein {
+        transition: all 2s ease;
+    }
+    .v-transition {
+        transition: all 2s
+    }
+    .v-enter, .v-leave {
+  height: 0;
+  padding: 0 10px;
+  opacity: 0;
+}
+canvas {
+    width: 700px !important;
+    height: 700px !important;
+    margin: auto;
+}
     </style>
+</head>
 <body>
 <div id="app-5" class="container">
     <h1>Dev Data</h1>
     <p>A simple tool to see beautiful representations of your Github user data.</p>
     <input class="git-user" v-on:input="find_data" v-model="user" placeholder="your github username">
     <div class="contact-line"></div>
-    <a :href="image_link">
-    <img :src="res.avatar_url" class="profile"></a>
-    <h2>{{ res.name }}</h2>
-    <div id="user-pres">
-        <div id="info">
-            <ul>
-                <template v-if="res.location">
-                <figure>
-                    <img src="location.svg" alt="location pin">
-                    <figcaption>{{ res.location }}</figcaption>
-                </figure>
-                </template>
-                <template v-if="res.blog">
-                <a :href="'http://' + res.blog">
-                <figure>
-                    <img src="web.svg" alt="blog page">
-                    <figcaption>{{ res.blog }}</figcaption>
-                </figure>
-                </a>
-                </template>
-                <template v-if="res.email">
+    <a :href="image_link"></a>
+    <img width="200" :src="res.avatar_url" class="profile"></a>
+    <h2 class="fadein">{{ res.name }}</h2>
+    <template v-if="res.avatar_url != 'githublogo.svg'">
+        <div id="user-pres" class="fadein">
+            <div class="info">
+                <ul>
+                    <li><template v-if="res.location">
                     <figure>
-                        <img src="email.svg" alt="email icon">
-                        <figcaption>{{ res.email }}</figcaption>
+                        <img src="location.svg" alt="location pin">
+                        <figcaption>{{ res.location }}</figcaption>
                     </figure>
-                </template>
-            </ul>
+                    </template></li>
+                    <li><template v-if="res.blog">
+                    <a :href="'http://' + res.blog">
+                    <figure>
+                        <img src="web.svg" alt="blog page">
+                        <figcaption>{{ res.blog }}</figcaption>
+                    </figure>
+                    </a>
+                    </template></li>
+                    <li><template v-if="res.email">
+                        <figure>
+                            <img src="email.svg" alt="email icon">
+                            <figcaption>{{ res.email }}</figcaption>
+                        </figure>
+                    </template></li>
+                </ul>
+            </div>
+            <div class="about">
+                <h2>{{ res.name }}</h2>
+                <h4 v:if="res.company">{{ res.company }}</h4>
+                <p>{{ res.bio }}</p>
+            </div>
         </div>
-        <div id="about">
-            <h2>{{ res.name }}</h2>
-            <h3 v:if="res.company">{{ res.company }}</h3>
-            <p>{{ res.bio }}</p>
-        </div>
-    </div>
+    </template>
+    <template v-else class="fadein">
+        <img src="not_found.png" width="400">
+        <p>Sorry. We couldn't find that user.</p>
+    </template>
     <h1 v-if="res.bio != undefined">Repos</h1>
     <ul>
         <li v-for="repo in repos">
-            {{ repo.full_name }}
+            <div class="repo">
+                <div class="about">
+                    <h2>{{ repo.name }}</h2>
+                    <p>{{ repo.description }}</p>
+                </div>
+                <div class="info">
+                    <ul>
+                    <li><figure>
+                        <img src="stars.svg" alt="stars icon">
+                        <figcaption>{{ repo.stargazers_count }}</figcaption>
+                    </figure></li>
+                    <li><a :href="repo.svn_url" class="btn" target="_blank" rel="noopener">See Code</a></li>
+                    </ul>
+                </div>
+            </div>
+            <br>    
         </li>
     </ul>
 </div>
+<canvas id="myChart" width="100" height="100"></canvas>
 <script>
     let vue = new Vue({
         el: '#app-5',
@@ -140,10 +198,13 @@
             res: {avatar_url: "githublogo.svg"},
             repos: [],
             image_link: "https://github.com/Uzay-G/dev-profile",
-            repos_url: "https://api.github.com/users/Uzay-G/repos"
+            repos_url: "https://api.github.com/users/Uzay-G/repos",
+            repo_data: [],
+            date: new Date()
         },
         methods: {
             find_data: function() {
+                this.res = {avatar_url: "githublogo.svg"}
                 this.url = "https://api.github.com/users/" + this.user
                 axios.get(this.url, {headers: {
                     Authorization: "Basic Uzay-G:*******"
@@ -152,16 +213,68 @@
                     )
                     console.log(this.res.email)
                 this.image_link = "#"
-                this.url = "https://api.github.com/users/" + this.user + "/repos"
+                this.repos_url = "https://api.github.com/users/" + this.user + "/repos"
                 axios.get(this.repos_url, {headers: {
-                Authorization: "Basic Uzay-G:chishluuh78"
+                Authorization: "Basic Uzay-G:******"
                 }})
                 .then(
                     response => this.repos = response.data
-                   // response => console.log(response)
                     )
+                console.log(this.repos)
+                axios.get(this.repos[0].commits_url,{headers: {
+                Authorization: "Basic Uzay-G:****"
+                }})
+                .then(response => console.log(response)
+
+                )
             }
         }
     })
+vue.date.setFullYear(vue.date.getFullYear() - 1)
+var ctx = document.getElementById('myChart');
+var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        datasets: [{
+            label: '# of Votes',
+            data: [12, 19, 3, 5, 2, 3],
+            /*backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],*/
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+
+        scales: {
+            xAxes: [{
+                ticks: {
+                    fontSize: 20
+                }
+            }],
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true,
+                    fontSize: 20
+
+                }
+            }]
+        }
+    }
+});
 </script>
 </body>
